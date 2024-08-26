@@ -8,20 +8,32 @@ import (
 	"os"
 	"os/signal"
 	"path"
+	"syscall"
 	"time"
 
 	"go.uber.org/zap"
 )
 
 func main() {
-	lis, err := net.Listen("tcp", "127.0.0.1:8443")
-	if err != nil {
-		log.Fatalf("error start TCP listener: %v", err)
-	}
-
 	logger, err := zap.NewDevelopment()
 	if err != nil {
 		log.Fatalf("error create logger: %v", err)
+	}
+
+	lc := &net.ListenConfig{
+		Control: func(network, address string, c syscall.RawConn) error {
+			logger.Info("control function called.", zap.String("network", network), zap.String("address", address))
+			return nil
+		},
+		KeepAlive: 0,
+		KeepAliveConfig: net.KeepAliveConfig{
+			Enable: false,
+		},
+	}
+
+	lis, err := lc.Listen(context.Background(), "tcp", "127.0.0.1:8443")
+	if err != nil {
+		logger.Fatal("error start TCP listener", zap.Error(err))
 	}
 
 	server := &http.Server{
