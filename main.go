@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"crypto/tls"
 	"log"
 	"net"
 	"net/http"
@@ -74,27 +73,5 @@ func main() {
 	case code := <-chExit:
 		logger.Info("exit signal received. exiting.")
 		os.Exit(code)
-	}
-}
-
-func customizeConnContext(logger *zap.Logger) func(context.Context, net.Conn) context.Context {
-	if logger == nil {
-		logger = zap.NewNop()
-	}
-
-	return func(ctx context.Context, c net.Conn) context.Context {
-		logger.Info("connection context called.")
-		if tls, ok := c.(*tls.Conn); ok {
-			logger.Info("tls connection established.", zap.String("local", tls.LocalAddr().String()), zap.String("remote", tls.RemoteAddr().String()))
-
-			if tcp, ok := tls.NetConn().(*net.TCPConn); ok {
-				logger.Info("tcp connection type casted. set keep alive to false.")
-				if err := tcp.SetKeepAlive(false); err != nil {
-					logger.Error("error set keep alive to false.", zap.Error(err))
-				}
-			}
-		}
-
-		return ctx
 	}
 }
