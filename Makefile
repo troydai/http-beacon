@@ -11,3 +11,12 @@ run: _build/http-probe
 .PHONY: clean
 clean:
 	rm -rf _build
+
+http1: _build/http-probe
+	PROTO_OPTION="http1" _build/http-probe
+
+http2: _build/http-probe
+	PROTO_OPTION="http2" _build/http-probe
+
+h2c: _build/http-probe
+	PROTO_OPTION="h2c" _build/http-probe
