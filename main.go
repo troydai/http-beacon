@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"log/slog"
 	"net"
 	"net/http"
@@ -9,15 +10,26 @@ import (
 	"os/signal"
 	"path"
 	"time"
+
+	"github.com/caarlos0/env/v11"
 )
 
+type options struct {
+	TLSOption string `env:"BEACON_TLS_OPTION" default:"tls"`
+}
+
 func main() {
+	var opts options
+	if err := env.Parse(&opts); err != nil {
+		// crash out early, the logs level will need to be decided by environment variable as well
+		log.Fatal("failed to parse environment variables", "error", err)
+	}
+
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelInfo,
 	}))
 
 	lc := &net.ListenConfig{KeepAlive: -1}
-
 	lis, err := lc.Listen(context.Background(), "tcp", "127.0.0.1:8443")
 	if err != nil {
 		logger.Error("error start TCP listener", "error", err)
