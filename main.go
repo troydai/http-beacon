@@ -11,13 +11,14 @@ import (
 	"time"
 
 	"github.com/caarlos0/env/v11"
+	"github.com/troydai/http-beacon/internal/h2c"
 	"github.com/troydai/http-beacon/internal/http1"
 	"github.com/troydai/http-beacon/internal/http2"
 	"github.com/troydai/http-beacon/internal/server"
 )
 
 type options struct {
-	Protocol string `env:"PROTO_OPTION" envDefault:"http2" enums:"http1,http2"`
+	Protocol string `env:"PROTO_OPTION" envDefault:"http2" enums:"http1,http2,h2c"`
 }
 
 func getHandler(logger *slog.Logger) http.Handler {
@@ -54,6 +55,8 @@ func main() {
 		server = http1.NewServer(getHandler(logger))
 	case "http2":
 		server = http2.NewServer(getHandler(logger))
+	case "h2c":
+		server = h2c.NewServer(getHandler(logger))
 	default:
 		logger.Error("unsupported protocol", "protocol", opts.Protocol)
 		os.Exit(1)
